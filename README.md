@@ -6,7 +6,7 @@ This is the implementation for discovering reliable dependencies from data using
 
 ## How to run
 
-To discover reliable dependencies in data, refer to the readme.txt file
+To discover reliable dependencies in data, refer to the readme.txt file in the discoveringDependencies folder
 
 ## Info
 
