@@ -1,6 +1,6 @@
-The code creates an output file in the -OUTPUTFOLDER folder, with the dataset name, alpha used, k for top-k and a timestamp of the run. The file contains various statistics of the search, and the top-k patterns discovered.  Every pattern contains the entropy of the target, the mutual information, the expected mutual information under the null, the reliable fraction of information score, and the uncorrected reliable fraction of information score. 
+This file contains instructions on how to discover reliable dependencies from data.
 
-For data attributes that are not categoric, equal-frequency discretization is applied.
+FoDiscovery.jar is the executable with all dependencies attached.
 
 valid dataset formats:
 	-arff
@@ -21,6 +21,10 @@ arguments:
 			-OPT    (beam has an additional option which is NONE, for no pruning at all)
 		For Branch-and-bound with OPUS only
 			-ALPHA   (alpha-approximation to use, default is 1 which yields the optimal solution)
+
+The code creates an output file in the -OUTPUTFOLDER folder, with the dataset name, alpha used, k for top-k and a timestamp of the run. The file contains various statistics of the search, and the top-k patterns discovered.  Every pattern contains the entropy of the target, the mutual information, the expected mutual information under the null, the reliable fraction of information score, and the uncorrected reliable fraction of information score. 
+
+For data attributes that are not categoric, equal-frequency discretization is applied.
 
 Examples
 	single experiment
