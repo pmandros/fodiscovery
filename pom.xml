@@ -28,21 +28,22 @@
      <plugins>
 
 <plugin>
-    <groupId>com.jolira</groupId>
-    <artifactId>onejar-maven-plugin</artifactId>
-    <version>1.4.4</version>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-assembly-plugin</artifactId>
     <executions>
         <execution>
-            <configuration>
-                <mainClass>de.mpiinf.fodiscovery.singleexp.FoOPUS</mainClass>
-                <attachToBuild>true</attachToBuild>
-                <filename>
-                  ../discoveringDependencies/FoDiscovery.jar
-                </filename>
-            </configuration>
+            <phase>package</phase>
             <goals>
-                <goal>one-jar</goal>
+                <goal>single</goal>
             </goals>
+            <configuration>
+            	<finalName>FoDiscovery</finalName>
+            	<appendAssemblyId>false</appendAssemblyId>
+				<outputDirectory>${project.basedir}/discoveringDependencies</outputDirectory>	
+                <descriptorRefs>
+                    <descriptorRef>jar-with-dependencies</descriptorRef>
+                </descriptorRefs>
+            </configuration>
         </execution>
     </executions>
 </plugin>
