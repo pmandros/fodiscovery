@@ -252,15 +252,17 @@ public class FoBeams {
 		for (i = 0; i < total; i++) {
 			if (args[i].equals("-OPT")) {
 				String optEstimatorToStr = (args[i + 1]);
-				if (optEstimatorToStr.equals("OLD")) {
-					optOption = OptimisticEstimatorOption.OLD;
+				if (optEstimatorToStr.equals("MON")) {
+					optOption = OptimisticEstimatorOption.MON;
 				} else if (optEstimatorToStr.equals("CHAIN")) {
 					optOption = OptimisticEstimatorOption.CHAIN;
 				} else if (optEstimatorToStr.equals("NONE")) {
 					optOption = OptimisticEstimatorOption.NONE;
+				} else if (optEstimatorToStr.equals("SPC")) {
+					optOption = OptimisticEstimatorOption.SPC;
 				} else {
 					throw new IllegalArgumentException(
-							"Wrong optimistic estimator argument. Valid options are OLD, CHAIN, NONE");
+							"Wrong optimistic estimator argument. Valid options are MON, SPC, CHAIN, NONE");
 				}
 				found = true;
 				break;

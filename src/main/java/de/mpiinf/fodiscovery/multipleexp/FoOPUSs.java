@@ -94,6 +94,7 @@ public class FoOPUSs {
 		try {
 			List<String> lines = Files.readAllLines(Paths.get(inputFile));
 			for (String s : lines) {
+				System.out.println(s);
 				// assigning defaults for each experiment
 				target = 0;
 				k = 1;
@@ -225,19 +226,6 @@ public class FoOPUSs {
 			throw new Exception("Missing -DATASET");
 		}
 
-		// take outfolder
-		found = false;
-		for (i = 0; i < total; i++) {
-			if (args[i].equals("-OUTPUTFOLDER")) {
-				outputFolder = args[i + 1];
-				found = true;
-				break;
-			}
-		}
-		if (found == false) {
-			throw new Exception("Missing -OUTPUTFOLDER");
-		}
-
 		// take target
 		found = false;
 		for (i = 0; i < total; i++) {
@@ -295,12 +283,15 @@ public class FoOPUSs {
 		for (i = 0; i < total; i++) {
 			if (args[i].equals("-OPT")) {
 				String optEstimatorToStr = (args[i + 1]);
-				if (optEstimatorToStr.equals("OLD")) {
-					optOption = OptimisticEstimatorOption.OLD;
+				if (optEstimatorToStr.equals("MON")) {
+					optOption = OptimisticEstimatorOption.MON;
 				} else if (optEstimatorToStr.equals("CHAIN")) {
 					optOption = OptimisticEstimatorOption.CHAIN;
+				} else if (optEstimatorToStr.equals("SPC")) {
+					optOption = OptimisticEstimatorOption.SPC;
 				} else {
-					throw new Exception("Wrong optimistic estimator argument. Valid options are OLD, CHAIN");
+					throw new IllegalArgumentException(
+							"Wrong optimistic estimator argument. Valid options are MON, SPC, CHAIN");
 				}
 				found = true;
 				break;
