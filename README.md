@@ -8,9 +8,9 @@ This is the implementation for discovering reliable dependencies from data using
 
 To discover reliable dependencies in data, refer to the readme.txt file in the discoveringDependencies folder
 
-## How to compile
+## How to build
 
-Currently the project is using a snapshot version of RealKD, therefore compiling is not currently available
+Currently the project is using a snapshot version of RealKD, therefore building is not available
 
 ## Info
 
