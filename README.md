@@ -14,7 +14,7 @@ Currently the project has a dependency to a snapshot version of RealKD, therefor
 
 ## Info
 
-This project is written in Java and build upon [RealKD](http://www.realkd.org)
+This project is written in Java and build upon [RealKD](http://www.realkd.org/realkd-library/)
 
 
 ## Authors
