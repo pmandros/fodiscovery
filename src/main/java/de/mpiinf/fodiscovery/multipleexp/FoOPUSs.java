@@ -49,6 +49,7 @@ import de.unibonn.realkd.data.table.DiscreteDataTable;
 import de.unibonn.realkd.data.table.XarfImport;
 import de.unibonn.realkd.patterns.Pattern;
 import de.unibonn.realkd.patterns.functional.FunctionalPattern;
+import utils.Utilities;
 
 /**
  * A class for running multiple experiments using OPUS branch-and-bound search
@@ -57,34 +58,19 @@ import de.unibonn.realkd.patterns.functional.FunctionalPattern;
  *
  */
 public class FoOPUSs {
-	// the file that contains the specifications for each
-	// experiment, one in each line
-	public static String inputFile;
-
-	// folder where all the output for each experiment
-	// will be written
-	public static String outputFolder;
-
-	public static String datasetPerExperiment;
-
-	public static int target;
-
-	public static int k;
-
-	public static int numBins;
-
 	public static final OperatorOrder operatorOrder = OperatorOrder.OPUS_PAPER;
 
 	public static final LanguageOption langOption = LanguageOption.ALL;
+	
+	public static TraverseOrder traverseOption = TraverseOrder.BREADTHFSPOTENTIAL;
 
-	public static OptimisticEstimatorOption optOption;
-
-	public static TraverseOrder traverseOption;
 
 	public static double alpha;
 
 	public static void main(String[] args) throws Exception {
-		readInputString(args);
+		String input = Utilities.input(args);
+		String outputFolder = Utilities.outputFolder(args);
+
 		Path pathToOutput = Paths.get(outputFolder);
 		if (!Files.exists(pathToOutput)) {
 
@@ -92,19 +78,15 @@ public class FoOPUSs {
 			System.out.println("Did not find the output folder. Created one instead.");
 		}
 		try {
-			List<String> lines = Files.readAllLines(Paths.get(inputFile));
+			List<String> lines = Files.readAllLines(Paths.get(input));
 			for (String s : lines) {
-				System.out.println(s);
-				// assigning defaults for each experiment
-				target = 0;
-				k = 1;
-				optOption = OptimisticEstimatorOption.CHAIN;
-				traverseOption = TraverseOrder.BREADTHFSVALUE;
-				numBins = 5;
-				target = 0;
-				alpha = 1;
-
-				readExperimentParameters(s.split(" "));
+				String datasetPerExperiment = Utilities.dataset(s.split(" "));
+				int target = Utilities.target(s.split(" "));
+				int k = Utilities.numResults(s.split(" "));
+				OptimisticEstimatorOption optOption = Utilities.optOPUS(s.split(" "));
+				double alpha = Utilities.alpha(s.split(" "));
+				int numBins = Utilities.numBins(s.split(" "));
+				
 				String timeStamp = new SimpleDateFormat("dd.MM.yyyy.HH.mm.ss").format(new Date());
 
 				Workspace workspace = Workspaces.workspace();
@@ -177,126 +159,4 @@ public class FoOPUSs {
 			e.printStackTrace();
 		}
 	}
-
-	public static void readInputString(String[] args) throws Exception {
-		int i;
-		int total = args.length - 1;
-
-		// take dataset
-		boolean found = false;
-		for (i = 0; i < total; i++) {
-			if (args[i].equals("-INPUT")) {
-				inputFile = args[i + 1];
-				found = true;
-				break;
-			}
-		}
-		if (found == false) {
-			throw new IllegalStateException("Missing -INPUT");
-		}
-
-		// take output folder
-		found = false;
-		for (i = 0; i < total; i++) {
-			if (args[i].equals("-OUTPUTFOLDER")) {
-				outputFolder = args[i + 1];
-				found = true;
-				break;
-			}
-		}
-		if (found == false) {
-			throw new IllegalStateException("Missing -OUTPUTFOLDER");
-		}
-	}
-
-	public static void readExperimentParameters(String[] args) throws Exception {
-		int i;
-		int total = args.length - 1;
-
-		// take dataset
-		boolean found = false;
-		for (i = 0; i < total; i++) {
-			if (args[i].equals("-DATASET")) {
-				datasetPerExperiment = args[i + 1];
-				found = true;
-				break;
-			}
-		}
-		if (found == false) {
-			throw new Exception("Missing -DATASET");
-		}
-
-		// take target
-		found = false;
-		for (i = 0; i < total; i++) {
-			if (args[i].equals("-TARGET")) {
-				target = Integer.parseInt(args[i + 1]);
-				found = true;
-				break;
-			}
-		}
-
-		// take topk
-		found = false;
-		for (i = 0; i < total; i++) {
-			if (args[i].equals("-K")) {
-				k = Integer.parseInt(args[i + 1]);
-				found = true;
-				break;
-			}
-		}
-
-		// take alpha
-		found = false;
-		for (i = 0; i < total; i++) {
-			if (args[i].equals("-ALPHA")) {
-				alpha = Double.parseDouble(args[i + 1]);
-				found = true;
-				break;
-			}
-		}
-
-		// take traverse order option
-		found = false;
-		for (i = 0; i < total; i++) {
-			if (args[i].equals("-TRAVERSEORDER")) {
-				String trOrderToStr = (args[i + 1]);
-				if (trOrderToStr.equals("BFSPOTENTIAL")) {
-					traverseOption = TraverseOrder.BREADTHFSPOTENTIAL;
-				} else if (trOrderToStr.equals("BFSVALUE")) {
-					traverseOption = TraverseOrder.BESTFSVALUE;
-				} else if (trOrderToStr.equals("BESTFSPOTENTIAL")) {
-					traverseOption = TraverseOrder.BESTFSPOTENTIAL;
-				} else if (trOrderToStr.equals("BESTFSVALUE")) {
-					traverseOption = TraverseOrder.BESTFSVALUE;
-				} else {
-					throw new Exception(
-							"Traverse order argument is wrong. Chose on of the following: BFSPOTENTIAL, BFSVALUE, BESTFSPOTENTIAL, BESTFSVALUE");
-				}
-				found = true;
-				break;
-			}
-		}
-
-		// take optimistic estimator
-		found = false;
-		for (i = 0; i < total; i++) {
-			if (args[i].equals("-OPT")) {
-				String optEstimatorToStr = (args[i + 1]);
-				if (optEstimatorToStr.equals("MON")) {
-					optOption = OptimisticEstimatorOption.MON;
-				} else if (optEstimatorToStr.equals("CHAIN")) {
-					optOption = OptimisticEstimatorOption.CHAIN;
-				} else if (optEstimatorToStr.equals("SPC")) {
-					optOption = OptimisticEstimatorOption.SPC;
-				} else {
-					throw new IllegalArgumentException(
-							"Wrong optimistic estimator argument. Valid options are MON, SPC, CHAIN");
-				}
-				found = true;
-				break;
-			}
-		}
-	}
-
 }

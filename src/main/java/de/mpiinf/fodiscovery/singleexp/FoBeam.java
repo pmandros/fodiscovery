@@ -44,6 +44,7 @@ import de.unibonn.realkd.data.table.DiscreteDataTable;
 import de.unibonn.realkd.data.table.XarfImport;
 import de.unibonn.realkd.patterns.Pattern;
 import de.unibonn.realkd.patterns.functional.FunctionalPattern;
+import utils.Utilities;
 
 /**
  * A class for discovery using Beam search
@@ -52,22 +53,16 @@ import de.unibonn.realkd.patterns.functional.FunctionalPattern;
  *
  */
 public class FoBeam {
-	public static String dataset;
-
-	public static int target = 0;
-
-	public static int k = 10;
-
-	public static int beamWidth = 1;
-
-	public static OptimisticEstimatorOption optOption = OptimisticEstimatorOption.CHAIN;
-
-	public static String outputFolder;
-
-	public static int numBins = 5;
-
 	public static void main(String[] args) throws Exception {
-		readInputString(args);
+		String dataset = Utilities.dataset(args);
+		String outputFolder = Utilities.outputFolder(args);
+		int target = Utilities.target(args);
+		int k = Utilities.numResults(args);
+		OptimisticEstimatorOption optOption = Utilities.optGreedy(args);
+		int beamWidth = Utilities.beamWidth(args);
+		int numBins = Utilities.numBins(args);
+		
+		
 		Path pathToOutput = Paths.get(outputFolder);
 		if (!Files.exists(pathToOutput)) {
 
@@ -131,115 +126,4 @@ public class FoBeam {
 			}
 		}
 	}
-
-	public static void readInputString(String[] args) throws Exception {
-		int i;
-		int total = args.length - 1;
-
-		// take dataset
-		boolean found = false;
-		for (i = 0; i < total; i++) {
-			if (args[i].equals("-DATASET")) {
-				dataset = args[i + 1];
-				found = true;
-				break;
-			}
-		}
-		if (found == false) {
-			throw new IllegalStateException("Missing -DATASET");
-		}
-
-		// take output folder
-		found = false;
-		for (i = 0; i < total; i++) {
-			if (args[i].equals("-OUTPUTFOLDER")) {
-				outputFolder = args[i + 1];
-				found = true;
-				break;
-			}
-		}
-		if (found == false) {
-			throw new IllegalStateException("Missing -OUTPUTFOLDER");
-		}
-
-		// take target
-		found = false;
-		for (i = 0; i < total; i++) {
-			if (args[i].equals("-TARGET")) {
-				target = Integer.parseInt(args[i + 1]);
-				if (target < 1) {
-					throw new IllegalArgumentException(
-							"Illegal value target attribute index. Should be between 1 and total number of attributes");
-				}
-				found = true;
-				break;
-			}
-		}
-
-		// take topk
-		found = false;
-		for (i = 0; i < total; i++) {
-			if (args[i].equals("-K")) {
-				k = Integer.parseInt(args[i + 1]);
-				if (k < 1) {
-					throw new IllegalArgumentException(
-							"Illegal value for number of results. Should be greater or equal to 1");
-				}
-				found = true;
-				break;
-			}
-		}
-
-		// take beamWidth
-		found = false;
-		for (i = 0; i < total; i++) {
-			if (args[i].equals("-BEAMWIDTH")) {
-				beamWidth = Integer.parseInt(args[i + 1]);
-				if (beamWidth < 1) {
-					throw new IllegalArgumentException("Illegal value for beam width. Should be greater or equal to 1");
-				}
-
-				found = true;
-				break;
-			}
-		}
-
-		// take optimistic estimator
-		found = false;
-		for (i = 0; i < total; i++) {
-			if (args[i].equals("-OPT")) {
-				String optEstimatorToStr = (args[i + 1]);
-				if (optEstimatorToStr.equals("MON")) {
-					optOption = OptimisticEstimatorOption.MON;
-				} else if (optEstimatorToStr.equals("CHAIN")) {
-					optOption = OptimisticEstimatorOption.CHAIN;
-				} else if (optEstimatorToStr.equals("NONE")) {
-					optOption = OptimisticEstimatorOption.NONE;
-				} else if (optEstimatorToStr.equals("SPC")) {
-					optOption = OptimisticEstimatorOption.SPC;
-				} else {
-					throw new IllegalArgumentException(
-							"Wrong optimistic estimator argument. Valid options are MON, SPC, CHAIN, NONE");
-				}
-				found = true;
-				break;
-			}
-		}
-
-		// take bins
-		found = false;
-		for (i = 0; i < total; i++) {
-			if (args[i].equals("-BINS")) {
-				numBins = Integer.parseInt(args[i + 1]);
-				if (numBins <= 1) {
-					throw new IllegalArgumentException(
-							"Illegal value for number of bins for discretization. Should be greater than 1");
-				}
-
-				found = true;
-				break;
-			}
-		}
-	}
-
 }
