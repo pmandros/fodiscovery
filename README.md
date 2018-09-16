@@ -10,7 +10,7 @@ To discover reliable dependencies in data, refer to the readme.txt file in the d
 
 ## How to compile
 
-Currently the project is using a snapshot version of RealKD, therefore compiling will be available soon.
+Currently the project is using a snapshot version of RealKD, therefore compiling is not currently available
 
 ## Info
 
