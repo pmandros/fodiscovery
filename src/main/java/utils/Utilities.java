@@ -160,7 +160,7 @@ public class Utilities {
 	}
 
 	public static double alpha(String args[]) {
-		double alpha = TARGET;
+		double alpha = ALPHA;
 		int i;
 		int total = args.length - 1;
 		for (i = 0; i < total; i++) {
