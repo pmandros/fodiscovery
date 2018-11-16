@@ -46,7 +46,7 @@ import de.unibonn.realkd.common.workspace.Workspaces;
 import de.unibonn.realkd.data.table.DataTable;
 import de.unibonn.realkd.data.table.DataTables;
 import de.unibonn.realkd.data.table.DiscreteDataTable;
-import de.unibonn.realkd.data.table.XarfImport;
+import de.unibonn.realkd.data.xarf.XarfImport;
 import de.unibonn.realkd.patterns.Pattern;
 import de.unibonn.realkd.patterns.functional.FunctionalPattern;
 import utils.Utilities;
@@ -61,9 +61,8 @@ public class FoOPUSs {
 	public static final OperatorOrder operatorOrder = OperatorOrder.OPUS_PAPER;
 
 	public static final LanguageOption langOption = LanguageOption.ALL;
-	
-	public static TraverseOrder traverseOption = TraverseOrder.BREADTHFSPOTENTIAL;
 
+	public static TraverseOrder traverseOption = TraverseOrder.BREADTHFSPOTENTIAL;
 
 	public static double alpha;
 
@@ -86,7 +85,7 @@ public class FoOPUSs {
 				OptimisticEstimatorOption optOption = Utilities.optOPUS(s.split(" "));
 				double alpha = Utilities.alpha(s.split(" "));
 				int numBins = Utilities.numBins(s.split(" "));
-				
+
 				String timeStamp = new SimpleDateFormat("dd.MM.yyyy.HH.mm.ss").format(new Date());
 
 				Workspace workspace = Workspaces.workspace();

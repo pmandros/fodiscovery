@@ -44,7 +44,7 @@ import de.unibonn.realkd.common.workspace.Workspaces;
 import de.unibonn.realkd.data.table.DataTable;
 import de.unibonn.realkd.data.table.DataTables;
 import de.unibonn.realkd.data.table.DiscreteDataTable;
-import de.unibonn.realkd.data.table.XarfImport;
+import de.unibonn.realkd.data.xarf.XarfImport;
 import de.unibonn.realkd.patterns.Pattern;
 import de.unibonn.realkd.patterns.functional.FunctionalPattern;
 import utils.Utilities;
