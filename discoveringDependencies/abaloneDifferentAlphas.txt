@@ -1,2 +1,0 @@
--DATASET abalone.arff -K 5 -ALPHA 1 
--DATASET abalone.arff -K 5 -ALPHA 0.8
