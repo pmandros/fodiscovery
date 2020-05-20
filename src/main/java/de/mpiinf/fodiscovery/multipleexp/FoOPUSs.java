@@ -34,18 +34,19 @@ import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 
 import de.unibonn.realkd.algorithms.branchbound.OPUS.OperatorOrder;
 import de.unibonn.realkd.algorithms.branchbound.OPUS.TraverseOrder;
 import de.unibonn.realkd.algorithms.functional.OPUSFunctionalPatternSearch;
+import de.unibonn.realkd.algorithms.functional.OPUSFunctionalPatternSearch.DiscretizationTypeOption;
 import de.unibonn.realkd.algorithms.functional.OPUSFunctionalPatternSearch.LanguageOption;
 import de.unibonn.realkd.algorithms.functional.OPUSFunctionalPatternSearch.OptimisticEstimatorOption;
 import de.unibonn.realkd.common.workspace.Workspace;
 import de.unibonn.realkd.common.workspace.Workspaces;
 import de.unibonn.realkd.data.table.DataTable;
 import de.unibonn.realkd.data.table.DataTables;
-import de.unibonn.realkd.data.table.DiscreteDataTable;
 import de.unibonn.realkd.data.xarf.XarfImport;
 import de.unibonn.realkd.patterns.Pattern;
 import de.unibonn.realkd.patterns.functional.FunctionalPattern;
@@ -62,9 +63,7 @@ public class FoOPUSs {
 
 	public static final LanguageOption langOption = LanguageOption.ALL;
 
-	public static TraverseOrder traverseOption = TraverseOrder.BREADTHFSPOTENTIAL;
-
-	public static double alpha;
+	public static final TraverseOrder traverseOption = TraverseOrder.BREADTHFSPOTENTIAL;
 
 	public static void main(String[] args) throws Exception {
 		String input = Utilities.input(args);
@@ -79,41 +78,63 @@ public class FoOPUSs {
 		try {
 			List<String> lines = Files.readAllLines(Paths.get(input));
 			for (String s : lines) {
-				String datasetPerExperiment = Utilities.dataset(s.split(" "));
-				int target = Utilities.target(s.split(" "));
-				int k = Utilities.numResults(s.split(" "));
-				OptimisticEstimatorOption optOption = Utilities.optOPUS(s.split(" "));
-				double alpha = Utilities.alpha(s.split(" "));
-				int numBins = Utilities.numBins(s.split(" "));
+				String[] argumentsPerExperiment = s.split(" ");
+				String dataset = Utilities.dataset(argumentsPerExperiment);
+				System.out.println(dataset);
+				int target = Utilities.target(argumentsPerExperiment);
+				System.out.println(target);
+				int k = Utilities.numResults(argumentsPerExperiment);
+				OptimisticEstimatorOption optOption = Utilities.optOPUS(argumentsPerExperiment);
+				double alpha = Utilities.alpha(argumentsPerExperiment);
+				System.out.println(alpha);
+				int maxBins = Utilities.maxBins(argumentsPerExperiment);
+				int numBinsTarget = Utilities.numBinsForTarget(argumentsPerExperiment);
+				int cutPointMultiplier = Utilities.cutPointMultiplier(argumentsPerExperiment);
+				DiscretizationTypeOption discTypeOption = Utilities.discTypeOPUS(argumentsPerExperiment);
 
 				String timeStamp = new SimpleDateFormat("dd.MM.yyyy.HH.mm.ss").format(new Date());
 
 				Workspace workspace = Workspaces.workspace();
-				XarfImport builder = XarfImport.xarfImport(datasetPerExperiment);
+				XarfImport builder = XarfImport.xarfImport(dataset);
 				DataTable dataTable = builder.get();
-				DiscreteDataTable dataDiscreteTable = DataTables.discretization(dataTable,
-						DataTables.equalFrequencyDiscretization(numBins));
-				workspace.add(dataDiscreteTable);
 
+				int numberOfAttrs=dataTable.numberOfAttributes();
+				if(target==0) {
+					target=numberOfAttrs;
+				}		
+				HashSet<Integer> targetToDiscretize=new HashSet<>();
+				targetToDiscretize.add(target-1);
+				DataTable dataWithPreDiscretizedAttributes = DataTables.preDiscretizeTable(dataTable,
+						DataTables.equalFrequencyDiscretization(numBinsTarget), targetToDiscretize);
+				workspace.add(dataWithPreDiscretizedAttributes);
 				OPUSFunctionalPatternSearch functionalPatternSearch = new OPUSFunctionalPatternSearch(workspace);
-				if (target == 0) {
-					functionalPatternSearch.target(dataDiscreteTable.attribute(dataTable.numberOfAttributes() - 1));
-					target = dataTable.numberOfAttributes();
-				} else {
-					functionalPatternSearch.target(dataDiscreteTable.attribute(target - 1));
-				}
 
+
+				functionalPatternSearch.target(dataWithPreDiscretizedAttributes
+						.attribute(target-1));
 				functionalPatternSearch.topK(k);
 				functionalPatternSearch.alpha(alpha);
 				functionalPatternSearch.operatorOrder(operatorOrder);
 				functionalPatternSearch.languageOption(langOption);
 				functionalPatternSearch.optimisticOption(optOption);
 				functionalPatternSearch.traverseOrderOption(traverseOption);
+				functionalPatternSearch.maxBins(maxBins);
+				functionalPatternSearch.cutPointMultiplier(cutPointMultiplier);
+				functionalPatternSearch.discTypeOption(discTypeOption);
 
 				String datasetName = dataTable.caption();
-				String experimentResultsFile = outputFolder + File.separator + datasetName + "_target-" + (target) + "_"
-						+ traverseOption.toString() + "_" + optOption.toString() + "_a-" + alpha + "_topk-" + k + "_"
-						+ timeStamp + ".txt";
+				String experimentResultsFile = null;
+				if (discTypeOption == DiscretizationTypeOption.COP) {
+					experimentResultsFile = outputFolder + File.separator + datasetName + "_Target=" + (target)
+							+ "_Alpha=" + (alpha) + "_Topk=" + k + "_Opt=" + optOption.toString() + "_L=" + maxBins
+							+ "_DiscType=" + discTypeOption.toString() + "_C=" + cutPointMultiplier + "_"
+							+ traverseOption.toString() + timeStamp + ".txt";
+				} else {
+					experimentResultsFile = outputFolder + File.separator + datasetName + "_Target=" + (target)
+							+ "_Alpha=" + (alpha) + "_Topk=" + k + "_Opt=" + optOption.toString() + "_L=" + maxBins
+							+ "_DiscType=" + discTypeOption.toString() + "_" + traverseOption.toString() + timeStamp
+							+ ".txt";
+				}
 				Collection<FunctionalPattern> resultPatterns = functionalPatternSearch.call();
 				long time = functionalPatternSearch.runningTime();
 				int nodes = functionalPatternSearch.nodesCreated();
@@ -122,6 +143,7 @@ public class FoOPUSs {
 				int max_depth = functionalPatternSearch.maxAttainedDepth();
 				int solution_depth = functionalPatternSearch.bestDepth();
 				int boundary_max_size = functionalPatternSearch.maxAttainedBoundarySize();
+				System.out.println(time / 1000.0);
 
 				try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(experimentResultsFile))) {
 					writer.write("time: " + time / 1000);

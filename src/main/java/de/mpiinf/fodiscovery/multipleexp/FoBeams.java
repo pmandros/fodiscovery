@@ -34,15 +34,17 @@ import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 
+import de.unibonn.realkd.algorithms.beamsearch.NewBeamSearch.RefinementPropagation;
 import de.unibonn.realkd.algorithms.functional.BeamFunctionalPatternSearch;
+import de.unibonn.realkd.algorithms.functional.BeamFunctionalPatternSearch.DiscretizationTypeOption;
 import de.unibonn.realkd.algorithms.functional.BeamFunctionalPatternSearch.OptimisticEstimatorOption;
 import de.unibonn.realkd.common.workspace.Workspace;
 import de.unibonn.realkd.common.workspace.Workspaces;
 import de.unibonn.realkd.data.table.DataTable;
 import de.unibonn.realkd.data.table.DataTables;
-import de.unibonn.realkd.data.table.DiscreteDataTable;
 import de.unibonn.realkd.data.xarf.XarfImport;
 import de.unibonn.realkd.patterns.Pattern;
 import de.unibonn.realkd.patterns.functional.FunctionalPattern;
@@ -68,36 +70,56 @@ public class FoBeams {
 		try {
 			List<String> lines = Files.readAllLines(Paths.get(input));
 			for (String s : lines) {
-				String dataset = Utilities.dataset(s.split(" "));
-				int target = Utilities.target(s.split(" "));
-				int k = Utilities.numResults(s.split(" "));
-				OptimisticEstimatorOption optOption = Utilities.optGreedy(s.split(" "));
-				int beamWidth = Utilities.beamWidth(s.split(" "));
-				int numBins = Utilities.numBins(s.split(" "));
+				String[] argumentsPerExperiment = s.split(" ");
+				String dataset = Utilities.dataset(argumentsPerExperiment);
+				System.out.println(dataset);
+				int target = Utilities.target(argumentsPerExperiment);
+				int k = Utilities.numResults(argumentsPerExperiment);
+				OptimisticEstimatorOption optOption = Utilities.optGreedy(argumentsPerExperiment);
+				int beamWidth = Utilities.beamWidth(argumentsPerExperiment);
+				int maxBins = Utilities.maxBins(argumentsPerExperiment);
+				int numBinsTarget = Utilities.numBinsForTarget(argumentsPerExperiment);
+				int cutPointMultiplier = Utilities.cutPointMultiplier(argumentsPerExperiment);
+				RefinementPropagation refOption = Utilities.refOpt(argumentsPerExperiment);
+				DiscretizationTypeOption discTypeOption = Utilities.discTypeGreedy(argumentsPerExperiment);
+
 				String timeStamp = new SimpleDateFormat("dd.MM.yyyy.HH.mm.ss").format(new Date());
 
 				Workspace workspace = Workspaces.workspace();
 				XarfImport builder = XarfImport.xarfImport(dataset);
 				DataTable dataTable = builder.get();
-				DiscreteDataTable dataDiscreteTable = DataTables.discretization(dataTable,
-						DataTables.equalFrequencyDiscretization(numBins));
-				workspace.add(dataDiscreteTable);
-
-				BeamFunctionalPatternSearch functionalPatternSearch = new BeamFunctionalPatternSearch(workspace);
+				int numberOfAttrs = dataTable.numberOfAttributes();
 				if (target == 0) {
-					functionalPatternSearch.target(dataDiscreteTable.attribute(dataTable.numberOfAttributes() - 1));
-					target = dataTable.numberOfAttributes();
-				} else {
-					functionalPatternSearch.target(dataDiscreteTable.attribute(target - 1));
+					target = numberOfAttrs;
 				}
+				HashSet<Integer> targetToDiscretize = new HashSet<>();
+				targetToDiscretize.add(target - 1);
+				DataTable dataWithPreDiscretizedAttributes = DataTables.preDiscretizeTable(dataTable,
+						DataTables.equalFrequencyDiscretization(numBinsTarget), targetToDiscretize);
+				workspace.add(dataWithPreDiscretizedAttributes);
+				BeamFunctionalPatternSearch functionalPatternSearch = new BeamFunctionalPatternSearch(workspace);
+
+				functionalPatternSearch.target(dataWithPreDiscretizedAttributes.attribute(target - 1));
 				functionalPatternSearch.topK(k);
 				functionalPatternSearch.beamWidth(beamWidth);
 				functionalPatternSearch.optimisticOption(optOption);
+				functionalPatternSearch.refPropagationOption(refOption);
+				functionalPatternSearch.maxBins(maxBins);
+				functionalPatternSearch.cutPointMultiplier(cutPointMultiplier);
+				functionalPatternSearch.discTypeOption(discTypeOption);
 
 				String datasetName = dataTable.caption();
-				String experimentResultsFile = outputFolder + File.separator + datasetName + "_Target-" + (target)
-						+ "_opt-" + optOption.toString() + "_beamWidth-" + beamWidth + "_topk-" + k + "_" + timeStamp
-						+ ".txt";
+				String experimentResultsFile = null;
+				if (discTypeOption == DiscretizationTypeOption.COP) {
+					experimentResultsFile = outputFolder + File.separator + datasetName + "_Target=" + (target)
+							+ "_BeamWidth=" + beamWidth + "_Topk=" + k + "_Opt=" + optOption.toString() + "_L="
+							+ maxBins + "_DiscType=" + discTypeOption.toString() + "_C=" + cutPointMultiplier + "_"
+							+ timeStamp + ".txt";
+				} else {
+					experimentResultsFile = outputFolder + File.separator + datasetName + "_Target=" + (target)
+							+ "_BeamWidth=" + beamWidth + "_Topk=" + k + "_Opt=" + optOption.toString() + "_L="
+							+ maxBins + "_DiscType=" + discTypeOption.toString() + "_" + timeStamp + ".txt";
+				}
 				Collection<FunctionalPattern> resultPatterns = functionalPatternSearch.call();
 				long time = functionalPatternSearch.runningTime();
 				int nodes = functionalPatternSearch.nodesCreated();

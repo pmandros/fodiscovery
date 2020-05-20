@@ -1,0 +1,2 @@
+-DATASET australian.arff -K 5 -ALPHA 0.5  -DISCTYPE EF -L 10
+-DATASET australian.arff -K 5 -ALPHA 0.8 -DISCTYPE EF -L 10

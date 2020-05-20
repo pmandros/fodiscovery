@@ -25,6 +25,8 @@
 
 package utils;
 
+import de.unibonn.realkd.algorithms.beamsearch.NewBeamSearch.RefinementPropagation;
+
 /**
  * A class to provide utility functions
  * 
@@ -34,24 +36,66 @@ package utils;
 public class Utilities {
 
 	// default values for experiment parameters
-	public static final int NUM_BINS = 5;
+	public static final int NUM_MAX_BINS = 5;
+	public static final int CUT_POINT_MULTIPLIER = 2;
 	public static final int NUM_RESULTS = 1;
 	public static final int TARGET = 0;
+	public static final int NUM_BINS_TARGET = 10;
+
 	public static final de.unibonn.realkd.algorithms.functional.OPUSFunctionalPatternSearch.OptimisticEstimatorOption OPT_OPUS = de.unibonn.realkd.algorithms.functional.OPUSFunctionalPatternSearch.OptimisticEstimatorOption.CHAIN;
-	static final de.unibonn.realkd.algorithms.functional.BeamFunctionalPatternSearch.OptimisticEstimatorOption OPT_GREEDY = de.unibonn.realkd.algorithms.functional.BeamFunctionalPatternSearch.OptimisticEstimatorOption.CHAIN;
+	public static final de.unibonn.realkd.algorithms.functional.OPUSFunctionalPatternSearch.DiscretizationTypeOption DISC_TYPE_OPUS = de.unibonn.realkd.algorithms.functional.OPUSFunctionalPatternSearch.DiscretizationTypeOption.EF;
+
+	public static final de.unibonn.realkd.algorithms.functional.BeamFunctionalPatternSearch.OptimisticEstimatorOption OPT_GREEDY = de.unibonn.realkd.algorithms.functional.BeamFunctionalPatternSearch.OptimisticEstimatorOption.CHAIN;
+	public static final de.unibonn.realkd.algorithms.functional.BeamFunctionalPatternSearch.DiscretizationTypeOption DISC_TYPE_GREEDY = de.unibonn.realkd.algorithms.functional.BeamFunctionalPatternSearch.DiscretizationTypeOption.EF;
+
+	public static final RefinementPropagation REF_PROP = RefinementPropagation.NON_REDUNDANT;
 	public static final double ALPHA = 1;
 	public static final int BEAM_WIDTH = 5;
 
-	public static int numBins(String args[]) {
-		int numBins = NUM_BINS;
+	public static int maxBins(String args[]) {
+		int numBins = NUM_MAX_BINS;
 		int i;
 		int total = args.length - 1;
 		for (i = 0; i < total; i++) {
-			if (args[i].equals("-BINS")) {
+			if (args[i].equals("-L")) {
 				numBins = Integer.parseInt(args[i + 1]);
 				if (numBins <= 1) {
 					throw new IllegalArgumentException(
-							"Illegal value for number of bins for discretization. Should be greater than 1");
+							"Illegal value for maximum number of bins for discretization. Should be >1");
+				}
+				break;
+			}
+		}
+		return numBins;
+	}
+
+	public static int cutPointMultiplier(String args[]) {
+		int numBins = CUT_POINT_MULTIPLIER;
+		int i;
+		int total = args.length - 1;
+		for (i = 0; i < total; i++) {
+			if (args[i].equals("-C")) {
+				numBins = Integer.parseInt(args[i + 1]);
+				if (numBins < 1) {
+					throw new IllegalArgumentException(
+							"Illegal value for cut point multiplier for discretization. Should be >=1");
+				}
+				break;
+			}
+		}
+		return numBins;
+	}
+
+	public static int numBinsForTarget(String args[]) {
+		int numBins = NUM_BINS_TARGET;
+		int i;
+		int total = args.length - 1;
+		for (i = 0; i < total; i++) {
+			if (args[i].equals("-NUM_BINS_TARGET")) {
+				numBins = Integer.parseInt(args[i + 1]);
+				if (numBins <= 1) {
+					throw new IllegalArgumentException(
+							"Illegal value for number of bins for target discretization. Should be >1");
 				}
 				break;
 			}
@@ -117,6 +161,30 @@ public class Utilities {
 		return optOption;
 	}
 
+	public static de.unibonn.realkd.algorithms.functional.OPUSFunctionalPatternSearch.DiscretizationTypeOption discTypeOPUS(
+			String args[]) {
+		de.unibonn.realkd.algorithms.functional.OPUSFunctionalPatternSearch.DiscretizationTypeOption discTypeOption = DISC_TYPE_OPUS;
+		int i;
+		int total = args.length - 1;
+		for (i = 0; i < total; i++) {
+			if (args[i].equals("-DISCTYPE")) {
+				String optEstimatorToStr = (args[i + 1]);
+				if (optEstimatorToStr.equals("COP")) {
+					discTypeOption = de.unibonn.realkd.algorithms.functional.OPUSFunctionalPatternSearch.DiscretizationTypeOption.COP;
+				} else if (optEstimatorToStr.equals("EF")) {
+					discTypeOption = de.unibonn.realkd.algorithms.functional.OPUSFunctionalPatternSearch.DiscretizationTypeOption.EF;
+				} else if (optEstimatorToStr.equals("PRE")) {
+					discTypeOption = de.unibonn.realkd.algorithms.functional.OPUSFunctionalPatternSearch.DiscretizationTypeOption.PRE;
+				} else {
+					throw new IllegalArgumentException(
+							"Wrong discretization type argument. Valid options are COP, EF, PRE");
+				}
+				break;
+			}
+		}
+		return discTypeOption;
+	}
+
 	public static de.unibonn.realkd.algorithms.functional.BeamFunctionalPatternSearch.OptimisticEstimatorOption optGreedy(
 			String args[]) {
 		de.unibonn.realkd.algorithms.functional.BeamFunctionalPatternSearch.OptimisticEstimatorOption optOption = OPT_GREEDY;
@@ -141,6 +209,51 @@ public class Utilities {
 			}
 		}
 		return optOption;
+	}
+
+	public static de.unibonn.realkd.algorithms.functional.BeamFunctionalPatternSearch.DiscretizationTypeOption discTypeGreedy(
+			String args[]) {
+		de.unibonn.realkd.algorithms.functional.BeamFunctionalPatternSearch.DiscretizationTypeOption discTypeOption = DISC_TYPE_GREEDY;
+		int i;
+		int total = args.length - 1;
+		for (i = 0; i < total; i++) {
+			if (args[i].equals("-DISCTYPE")) {
+				String optEstimatorToStr = (args[i + 1]);
+				if (optEstimatorToStr.equals("COP")) {
+					discTypeOption = de.unibonn.realkd.algorithms.functional.BeamFunctionalPatternSearch.DiscretizationTypeOption.COP;
+				} else if (optEstimatorToStr.equals("EF")) {
+					discTypeOption = de.unibonn.realkd.algorithms.functional.BeamFunctionalPatternSearch.DiscretizationTypeOption.EF;
+				} else if (optEstimatorToStr.equals("PRE")) {
+					discTypeOption = de.unibonn.realkd.algorithms.functional.BeamFunctionalPatternSearch.DiscretizationTypeOption.PRE;
+				} else {
+					throw new IllegalArgumentException(
+							"Wrong discretization type argument. Valid options are COP, EF, PRE");
+				}
+				break;
+			}
+		}
+		return discTypeOption;
+	}
+
+	public static RefinementPropagation refOpt(String args[]) {
+		RefinementPropagation refOption = REF_PROP;
+		int i;
+		int total = args.length - 1;
+		for (i = 0; i < total; i++) {
+			if (args[i].equals("-REFOPT")) {
+				String refOptToStr = (args[i + 1]);
+				if (refOptToStr.equals("ALL")) {
+					refOption = RefinementPropagation.ALL;
+				} else if (refOptToStr.equals("NONRED")) {
+					refOption = RefinementPropagation.NON_REDUNDANT;
+				} else {
+					throw new IllegalArgumentException(
+							"Wrong refinement propagation argument. Valid options are ALL, NONRED");
+				}
+				break;
+			}
+		}
+		return refOption;
 	}
 
 	public static int beamWidth(String args[]) {
@@ -233,30 +346,29 @@ public class Utilities {
 			return input;
 		}
 	}
-	
-	
-	
-//	
-//	// take traverse order option
-//			found = false;
-//			for (i = 0; i < total; i++) {
-//				if (args[i].equals("-TRAVERSEORDER")) {
-//					String trOrderToStr = (args[i + 1]);
-//					if (trOrderToStr.equals("BFSPOTENTIAL")) {
-//						traverseOption = TraverseOrder.BREADTHFSPOTENTIAL;
-//					} else if (trOrderToStr.equals("BFSVALUE")) {
-//						traverseOption = TraverseOrder.BESTFSVALUE;
-//					} else if (trOrderToStr.equals("BESTFSPOTENTIAL")) {
-//						traverseOption = TraverseOrder.BESTFSPOTENTIAL;
-//					} else if (trOrderToStr.equals("BESTFSVALUE")) {
-//						traverseOption = TraverseOrder.BESTFSVALUE;
-//					} else {
-//						throw new Exception(
-//								"Traverse order argument is wrong. Chose on of the following: BFSPOTENTIAL, BFSVALUE, BESTFSPOTENTIAL, BESTFSVALUE");
-//					}
-//					found = true;
-//					break;
-//				}
-//			}
+
+	//
+	// // take traverse order option
+	// found = false;
+	// for (i = 0; i < total; i++) {
+	// if (args[i].equals("-TRAVERSEORDER")) {
+	// String trOrderToStr = (args[i + 1]);
+	// if (trOrderToStr.equals("BFSPOTENTIAL")) {
+	// traverseOption = TraverseOrder.BREADTHFSPOTENTIAL;
+	// } else if (trOrderToStr.equals("BFSVALUE")) {
+	// traverseOption = TraverseOrder.BESTFSVALUE;
+	// } else if (trOrderToStr.equals("BESTFSPOTENTIAL")) {
+	// traverseOption = TraverseOrder.BESTFSPOTENTIAL;
+	// } else if (trOrderToStr.equals("BESTFSVALUE")) {
+	// traverseOption = TraverseOrder.BESTFSVALUE;
+	// } else {
+	// throw new Exception(
+	// "Traverse order argument is wrong. Chose on of the following: BFSPOTENTIAL,
+	// BFSVALUE, BESTFSPOTENTIAL, BESTFSVALUE");
+	// }
+	// found = true;
+	// break;
+	// }
+	// }
 
 }
