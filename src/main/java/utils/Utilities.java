@@ -242,7 +242,7 @@ public class Utilities {
 		for (i = 0; i < total; i++) {
 			if (args[i].equals("-REFOPT")) {
 				String refOptToStr = (args[i + 1]);
-				if (refOptToStr.equals("ALL")) {
+				if (refOptToStr.equals("ALL")) { 
 					refOption = RefinementPropagation.ALL;
 				} else if (refOptToStr.equals("NONRED")) {
 					refOption = RefinementPropagation.NON_REDUNDANT;
